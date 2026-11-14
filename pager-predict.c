@@ -61,10 +61,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
     int pc = process_entry.pc;
     int page = pc / PAGESIZE;
 
-    if (process_entry.pages[page] == 1) {
-      timestamps[proc][page] = tick;
-    }
-
     used_pages[proc][page] = 1;
 
     if (last_pc[proc] >= 0 && last_pc[proc] != pc) {
@@ -103,30 +99,13 @@ void pageit(Pentry q[MAXPROCESSES]) {
     predicted_pages[proc][(page + 1) % MAXPROCPAGES] = 1;
   }
 
-  int eviction_count = 100;
-  for (int i = 0; i < eviction_count; i++) {
-    int victim_process = -1;
-    int victim_page = -1;
-
     for (int candidate_process = 0; candidate_process < MAXPROCESSES; candidate_process++) {
       for (int candidate_page = 0; candidate_page < MAXPROCPAGES; candidate_page++) {
         if (used_pages[candidate_process][candidate_page] == 1) continue;
         if (predicted_pages[candidate_process][candidate_page] == 1) continue;
-        if (victim_page < 0 || timestamps[candidate_process][candidate_page] < timestamps[victim_process][victim_page]) {
-          victim_process = candidate_process;
-          victim_page = candidate_page;
+          pageout(candidate_process, candidate_page);
         }
       }
-    }
-
-    if (victim_process == -1 || victim_page == -1 || timestamps[victim_process][victim_page] == MAX_TIME) {
-      break;
-    }
-
-    timestamps[victim_process][victim_page] = MAX_TIME;
-
-    pageout(victim_process, victim_page);
-  }
 
   // get used pages
   for (proc = 0; proc < MAXPROCESSES; proc++) {
@@ -134,7 +113,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
     for (page = 0; page < MAXPROCPAGES; page++) {
       if (used_pages[proc][page]) {
         pagein(proc, page);
-        timestamps[proc][page] = tick;
         break;
       }
     }
@@ -146,7 +124,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
     for (page = 0; page < MAXPROCPAGES; page++) {
       if (predicted_pages[proc][page]) {
         pagein(proc, page);
-        timestamps[proc][page] = tick;
       }
     }
   }
