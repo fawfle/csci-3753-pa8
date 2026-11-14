@@ -55,6 +55,10 @@ void pageit(Pentry q[MAXPROCESSES]) {
     int pc = process_entry.pc;
     int page = pc / PAGESIZE;
 
+    if (process_entry.pages[page] == 1) {
+      timestamps[proc][page] = tick;
+    }
+
     used_pages[proc][page] = 1;
 
     if (last_pc[proc] >= 0 && last_pc[proc] != pc) {
@@ -92,7 +96,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
       }
     }
 
-    if (victim_process == -1 || victim_page == -1) {
+    if (victim_process == -1 || victim_page == -1 || timestamps[victim_process][victim_page] == MAX_TIME) {
       break;
     }
 
