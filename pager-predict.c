@@ -8,8 +8,6 @@
 void pageit(Pentry q[MAXPROCESSES]) { 
   /* Static vars */
   static int initialized = 0;
-  static int tick = 1; // artificial time
-  static int timestamps[MAXPROCESSES][MAXPROCPAGES];
 
 
   static int last_pc[MAXPROCESSES];
@@ -23,14 +21,13 @@ void pageit(Pentry q[MAXPROCESSES]) {
   int proc;
   int page;
 
-  int lookahead = 200;
-  int lookahead_alternative = 200;
+  int lookahead = 250;
+  int lookahead_alternative = 250;
     
   /* initialize static vars on first run */
   if (!initialized) {
     for (proc = 0; proc < MAXPROCESSES; proc++) {
       for (page = 0; page < MAXPROCPAGES; page++) {
-          timestamps[proc][page] = MAX_TIME; 
         for (int i = 0; i < PAGESIZE; i++) {
           next_pc[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
           next_pc_alternate[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
@@ -127,7 +124,4 @@ void pageit(Pentry q[MAXPROCESSES]) {
       }
     }
   }
-
-  /* advance time for next pageit iteration */
-  tick++;
 }
