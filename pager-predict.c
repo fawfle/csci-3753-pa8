@@ -1,6 +1,9 @@
 #include <stdio.h> 
 #include <stdlib.h>
+#include <time.h>
 #include "simulator.h"
+
+#define MAX_TIME 2147483600
 
 void pageit(Pentry q[MAXPROCESSES]) { 
   /* Static vars */
@@ -17,7 +20,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
   int proc;
   int page;
 
-  int lookahead = 256;
+  int lookahead = 200;
     
   /* initialize static vars on first run */
   if (!initialized) {
@@ -25,7 +28,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
       for (page = 0; page < MAXPROCPAGES; page++) {
         timestamps[proc][page] = 0; 
         for (int i = 0; i < PAGESIZE; i++) {
-          next_pc[proc][page * PAGESIZE + i] = -1;
+          next_pc[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
         }
       }
       last_pc[proc] = -1;
@@ -55,7 +58,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     used_pages[proc][page] = 1;
 
     if (last_pc[proc] >= 0 && last_pc[proc] != pc) {
-     next_pc[proc][last_pc[proc]] = pc;
+      next_pc[proc][last_pc[proc]] = pc;
     }
 
     last_pc[proc] = pc;
@@ -73,12 +76,29 @@ void pageit(Pentry q[MAXPROCESSES]) {
     }
   }
 
-  for (int candidate_process = 0; candidate_process < MAXPROCESSES; candidate_process++) {
-    for (int candidate_page = 0; candidate_page < MAXPROCPAGES; candidate_page++) {
-      if (used_pages[candidate_process][candidate_page] == 1) continue;
-      if (predicted_pages[candidate_process][candidate_page] == 1) continue;
-      pageout(candidate_process, candidate_page);
+  int eviction_count = 15;
+  for (int i = 0; i < eviction_count; i++) {
+    int victim_process = -1;
+    int victim_page = -1;
+
+    for (int candidate_process = 0; candidate_process < MAXPROCESSES; candidate_process++) {
+      for (int candidate_page = 0; candidate_page < MAXPROCPAGES; candidate_page++) {
+        if (used_pages[candidate_process][candidate_page] == 1) continue;
+        if (predicted_pages[candidate_process][candidate_page] == 1) continue;
+        if (victim_page < 0 || timestamps[candidate_process][candidate_page] < timestamps[victim_process][victim_page]) {
+          victim_process = candidate_process;
+          victim_page = candidate_page;
+        }
+      }
     }
+
+    if (victim_process == -1 || victim_page == -1) {
+      break;
+    }
+
+    timestamps[victim_process][victim_page] = MAX_TIME;
+
+    pageout(victim_process, victim_page);
   }
 
   // get used pages
@@ -87,6 +107,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     for (page = 0; page < MAXPROCPAGES; page++) {
       if (used_pages[proc][page]) {
         pagein(proc, page);
+        timestamps[proc][page] = tick;
         break;
       }
     }
@@ -98,6 +119,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     for (page = 0; page < MAXPROCPAGES; page++) {
       if (predicted_pages[proc][page]) {
         pagein(proc, page);
+        timestamps[proc][page] = tick;
       }
     }
   }
