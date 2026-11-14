@@ -531,7 +531,7 @@ static void allinit () {
 	if (!empty()) {
 	    processes[i]=dequeue(); 
 
-	    sim_log(LOG_LOAD,"process %2d; pc %04d: loaded\n",i, processes[i]->pc); 
+	    sim_log(LOG_LOAD,"process %2d; pc %04d: loaded of type %d\n",i, processes[i]->pc, processes[i]->kind); 
 	    if (output) fprintf(output, "%ld,%ld,%ld,%ld,%ld,load\n", 
 		sysclock, i, processes[i]->pid, 
 		processes[i]->kind, processes[i]->pc);
@@ -580,7 +580,7 @@ static void allstep () {
 	    processes[i]=NULL; 
             if (!empty()) {
 		processes[i]=dequeue();
-	        sim_log(LOG_LOAD,"process %2d; pc %04d: loaded\n",i, processes[i]->pc); 
+	        sim_log(LOG_LOAD,"process %2d; pc %04d: loaded of type %d\n",i, processes[i]->pc, processes[i]->kind); 
 		if (output) fprintf(output, "%ld,%ld,%ld,%ld,%ld,load\n", 
 		    sysclock, i, processes[i]->pid, 
 		    processes[i]->kind, processes[i]->pc);
