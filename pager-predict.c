@@ -82,7 +82,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     }
 
     predicted_pc = pc;
-    for (int i = 0; i < lookahead; i++) {
+    for (int i = 0; i < lookahead_alternative; i++) {
       predicted_pc = next_pc_alternate[proc][predicted_pc];
       if (predicted_pc < 0 || predicted_pc > MAXPROCPAGES * PAGESIZE) break;
       int predicted_page = predicted_pc / PAGESIZE;
@@ -94,7 +94,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     }
   }
 
-  int eviction_count = 15;
+  int eviction_count = 20;
   for (int i = 0; i < eviction_count; i++) {
     int victim_process = -1;
     int victim_page = -1;
