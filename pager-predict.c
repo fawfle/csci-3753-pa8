@@ -24,7 +24,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
 
   int lookahead = 200;
   int lookahead_alternative = 200;
-  int lookahead_alternative_again = 50;
     
   /* initialize static vars on first run */
   if (!initialized) {
@@ -34,7 +33,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
         for (int i = 0; i < PAGESIZE; i++) {
           next_pc[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
           next_pc_alternate[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
-          next_pc_alternate_two[proc][page * PAGESIZE + i] = page * PAGESIZE + i + 1;
         }
       }
       last_pc[proc] = -1;
@@ -69,13 +67,10 @@ void pageit(Pentry q[MAXPROCESSES]) {
 
     if (last_pc[proc] >= 0 && last_pc[proc] != pc) {
       int last_next_pc = next_pc[proc][last_pc[proc]];
-      int last_next_pc_alternate = next_pc_alternate[proc][last_pc[proc]];
 
       next_pc[proc][last_pc[proc]] = pc;
 
-      if (last_next_pc != -1 && last_next_pc != pc) next_pc_alternate[proc][last_pc[proc]] = last_next_pc;
-
-      if (last_next_pc != -1 && last_next_pc != pc && last_next_pc_alternate != pc) next_pc_alternate_two[proc][last_pc[proc]] = last_next_pc_alternate;
+      if (last_next_pc != pc) next_pc_alternate[proc][last_pc[proc]] = last_next_pc;
     }
 
     last_pc[proc] = pc;
@@ -91,14 +86,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
     predicted_pc = pc;
     for (int i = 0; i < lookahead_alternative; i++) {
       predicted_pc = next_pc_alternate[proc][predicted_pc];
-      if (predicted_pc < 0 || predicted_pc > MAXPROCPAGES * PAGESIZE) break;
-      int predicted_page = predicted_pc / PAGESIZE;
-      predicted_pages[proc][predicted_page] = 1;
-    }
-
-    predicted_pc = pc;
-    for (int i = 0; i < lookahead_alternative_again; i++) {
-      predicted_pc = next_pc_alternate_two[proc][predicted_pc];
       if (predicted_pc < 0 || predicted_pc > MAXPROCPAGES * PAGESIZE) break;
       int predicted_page = predicted_pc / PAGESIZE;
       predicted_pages[proc][predicted_page] = 1;
