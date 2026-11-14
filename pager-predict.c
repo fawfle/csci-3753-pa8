@@ -96,12 +96,11 @@ void pageit(Pentry q[MAXPROCESSES]) {
       predicted_pages[proc][predicted_page] = 1;
       if (zero_jumps[proc][predicted_pc]) {
         predicted_pages[proc][0] = 1;
+        break;
       }
     }
 
-    if (page + 1 < PAGESIZE) {
-      predicted_pages[proc][(page + 1) % 20] = 1;
-    }
+    predicted_pages[proc][(page + 1) % MAXPROCPAGES] = 1;
   }
 
   int eviction_count = 100;
